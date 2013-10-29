@@ -12,6 +12,7 @@
 
 @protocol BCStatusItemViewDelegate
 - (NSDragOperation)statusItemView:(BCStatusItemView *)view draggingEntered:(id <NSDraggingInfo>)info;
+- (void)statusItemView:(BCStatusItemView *)view draggingEnded:(id <NSDraggingInfo>)info;
 - (void)statusItemView:(BCStatusItemView *)view draggingExited:(id <NSDraggingInfo>)info;
 - (BOOL)statusItemView:(BCStatusItemView *)view prepareForDragOperation:(id <NSDraggingInfo>)info;
 - (BOOL)statusItemView:(BCStatusItemView *)view performDragOperation:(id <NSDraggingInfo>)info;
@@ -35,6 +36,7 @@
 	NSAttributedString *attributedTitle;
   NSArray *animFrames;
   NSThread *animThread;
+    NSInteger animFrameIndex;
   
 	id<BCStatusItemViewDelegate> delegate;
 }
@@ -51,6 +53,7 @@
 
 
 @property (assign, nonatomic) id<BCStatusItemViewDelegate> delegate;
+@property (assign, nonatomic) id<NSMenuDelegate> menuDelegate;
 @property (nonatomic, getter = isEnabled) BOOL enabled;
 
 + (BCStatusItemView *)viewWithStatusItem:(NSStatusItem *)statusItem;
@@ -58,6 +61,7 @@
 
 - (void) startAnimation;
 - (void) stopAnimation;
+- (BOOL) isAnimating;
 
 
 

@@ -49,6 +49,18 @@
 	return [[[self view] window] frame];
 }
 
+- (void)bc_setMenu:(NSMenu *)menu
+{
+    [self setMenu:menu];
+    [[self menu] setDelegate:(BCStatusItemView *)[self view]];
+}
+
+- (void)bc_setMenuDelegate:(id<NSMenuDelegate>)menuDelegate
+{
+	if([[self view] respondsToSelector:@selector(setMenuDelegate:)])
+		[(BCStatusItemView *)[self view] setMenuDelegate:menuDelegate];
+}
+
 - (void)setViewDelegate:(id)delegate
 {
 	if([[self view] respondsToSelector:@selector(setDelegate:)])
@@ -116,6 +128,8 @@
   [(BCStatusItemView *)[self view] stopAnimation];
 }
 
-
+- (BOOL) isAnimating {
+    return [(BCStatusItemView *)[self view] isAnimating];
+}
 
 @end

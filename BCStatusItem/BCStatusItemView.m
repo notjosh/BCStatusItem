@@ -48,6 +48,7 @@
     self.animFrames = nil;
 		self.delegate = nil;
         self.enabled = YES;
+          animFrameIndex = -1;
 	}
 	return self;
 }
@@ -234,16 +235,24 @@
 #pragma mark -
 #pragma mark NSMenu Delegate
 
-- (void)menuWillOpen:(NSMenu *)menu
+- (void)menuWillOpen:(NSMenu *)aMenu
 {
 	highlighted = YES;
 	[self setNeedsDisplay:YES];
+
+    if ([self.menuDelegate respondsToSelector:@selector(menuWillOpen:)]) {
+        [self.menuDelegate menuWillOpen:aMenu];
+    }
 }
 
-- (void)menuDidClose:(NSMenu *)menu
+- (void)menuDidClose:(NSMenu *)aMenu
 {
 	highlighted = NO;
-	[self setNeedsDisplay:YES];	
+	[self setNeedsDisplay:YES];
+
+    if ([self.menuDelegate respondsToSelector:@selector(menuDidClose:)]) {
+        [self.menuDelegate menuDidClose:aMenu];
+    }
 }
 
 #pragma mark -
@@ -263,7 +272,11 @@
       drawnImage = self.dragImage;
     }
     else {
-      drawnImage = self.image;
+        if (animFrameIndex >= 0 && animFrameIndex < [self.animFrames count]) {
+            drawnImage = [self.animFrames objectAtIndex:animFrameIndex];
+        } else {
+          drawnImage = self.image;
+        }
     }
 	}
   
@@ -315,6 +328,10 @@
 	return [delegate statusItemView:self draggingEntered:sender];
 }
 
+- (void)draggingEnded:(id<NSDraggingInfo>)sender {
+    [delegate statusItemView:self draggingEnded:sender];
+}
+
 - (void)draggingExited:(id <NSDraggingInfo>)sender
 {
   isDragged = NO;
@@ -349,51 +366,54 @@
   [threadDict setValue:[NSNumber numberWithBool:YES] forKey:@"ThreadShouldExitNow"];
 }
 
+- (BOOL) isAnimating {
+    return nil != animThread && animFrameIndex >= -1;
+}
+
 - (void) animationLoop {
-  
   BOOL moreWorkToDo = YES;
   BOOL exitNow = NO;
-  NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
   
     // Add the exitNow BOOL to the thread dictionary.
   NSMutableDictionary* threadDict = [[NSThread currentThread] threadDictionary];
   [threadDict setValue:[NSNumber numberWithBool:exitNow] forKey:@"ThreadShouldExitNow"];
   
-  int index = 0;
-  
-  
+  animFrameIndex = 0;
   
   while (moreWorkToDo && !exitNow)
   {
-    NSImage *aframe = [NSImage imageNamed:[animFrames objectAtIndex:index]];
+//    NSImage *aframe = [NSImage imageNamed:[animFrames objectAtIndex:index]];
+//    NSImage *aframe = [animFrames objectAtIndex:index];
+
     //NSLog(@"%@", aframe);
-    [self setImage:aframe];
-    
-    
+//    [self setImage:aframe];
     
     [self setNeedsDisplay:YES];
-    index++;
-    if (index >= [animFrames count]) {
-     index = 0;
+    animFrameIndex++;
+    if (animFrameIndex >= [animFrames count]) {
+     animFrameIndex = 0;
     }
+
+    usleep((1.f/24.f) * USEC_PER_SEC); // 24fps
     
       // Check to see if an input source handler changed the exitNow value.
-    exitNow = [[threadDict valueForKey:@"ThreadShouldExitNow"] boolValue];
-    sleep(1);
+    exitNow = [[threadDict valueForKey:@"ThreadShouldExitNow"] boolValue] || 0 == [self.animFrames count];
   }
+
+    animFrameIndex = -1;
+    
+//  NSImage *aframe = [NSImage imageNamed:[animFrames lastObject]];
+//  NSImage *aframe = self.originalImage;
+//  [self setImage:aframe];
+//  [self setNeedsDisplay:YES];
   
-  NSImage *aframe = [NSImage imageNamed:[animFrames lastObject]];
-  [self setImage:aframe];
-  [self setNeedsDisplay:YES];
+//  usleep(0.2 * USEC_PER_SEC);
   
-  sleep(3);
-  
-  
-  self.image = self.originalImage;
-  [self setNeedsDisplay:YES];
+//  self.image = self.originalImage;
+//  [self setNeedsDisplay:YES];
   
   [animThread cancel];
-  [animThread release];
+  [animThread release], animThread = nil;
   
   
 }

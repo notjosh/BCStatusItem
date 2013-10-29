@@ -12,6 +12,9 @@
 
 @interface NSStatusItem(BCStatusItem)
 
+- (void)bc_setMenu:(NSMenu *)menu;
+- (void)bc_setMenuDelegate:(id<NSMenuDelegate>)menuDelegate;
+
 /**
  * Sets up a BCStatusItemView, copies needed NSStatusItem properties and sets the view on the status item
  * Call this after you do any of these: setImage, setAlternateImage, setTitle, setAttributedTitle, setHighlightMode
@@ -37,6 +40,7 @@
 - (void)setViewDelegate:(id)delegate;
 - (void) startAnimation;
 - (void) stopAnimation;
+- (BOOL) isAnimating;
 
 
 @end
